@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1066127325416",
+    "project_id": "car-pooling-d243a",
+    "storage_bucket": "car-pooling-d243a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1066127325416:android:7d113d825b0ba3492df15d",
+        "android_client_info": {
+          "package_name": "com.example.driver_demo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAosjwejcbUCaNUO83YPmGfRIMrWgZSP0k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1066127325416:android:e7dd411f211634e32df15d",
+        "android_client_info": {
+          "package_name": "com.example.milestone_demo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAosjwejcbUCaNUO83YPmGfRIMrWgZSP0k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
