@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 class fireStore{
   Future<void> addRide(String To, String From, String Time, String Date, String Fees ) async
   {
+    final uid=FirebaseAuth.instance.currentUser?.uid;
     try {
       CollectionReference Rides = FirebaseFirestore.instance.collection('rides');
 
@@ -13,6 +14,7 @@ class fireStore{
         'date': Date,
         'time': Time,
         'fees':Fees,
+            'id':uid,
       });
       }
 
@@ -60,6 +62,36 @@ class fireStore{
     } catch (e) {
       print('Error updating task data... $e');
       // Handle data saving errors here.
+    }
+  }
+  Future<void> updateRequestRides(Map<String, dynamic> updateData) async {
+    try {
+      final Uid = FirebaseAuth.instance.currentUser!.uid;
+      DocumentReference requestDoc = FirebaseFirestore.instance.collection(
+          'requests').doc(Uid);
+      //
+      //   await historyDoc.update({
+      //     'History': FieldValue.arrayUnion([updateData]),
+      //   });
+      // } catch (e) {
+      //   print('Error updating Firestore: $e');
+      //   // Handle error as needed
+      // }
+      var docSnapshot = await requestDoc.get();
+      if (docSnapshot.exists) {
+        // Document exists, proceed with the update
+        await requestDoc.update({
+          'History': FieldValue.arrayUnion([updateData])
+        });
+      } else {
+        // Document does not exist, handle accordingly
+        print('Document does not exist');
+      }
+    }
+    catch (e) {
+      //   print('Error updating Firestore: $e');
+      //   // Handle error as needed
+      // }
     }
   }
 

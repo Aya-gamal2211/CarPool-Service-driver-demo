@@ -188,8 +188,8 @@ class _AddRide extends State <AddRide> {
 
 
 
-                      //  }
-                      // else{
+                       }
+                      else{
                          _store.addRide(
                              _toController.text, _fromController.text,
                              selectedTime, Date, _feesController.text);

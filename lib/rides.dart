@@ -2,10 +2,11 @@
 import 'package:driver_demo/fireStore.dart';
 import 'package:flutter/material.dart';
 
-// import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 
 import 'fireStore.dart';
 
@@ -21,7 +22,7 @@ String Source='Faculty of Engineering Campus';
 
 class _RideOfferScreen extends State <RideOfferScreen> {
 
-
+  final Uid=FirebaseAuth.instance.currentUser!.uid;
   fireStore mydata = fireStore();
 
   @override
@@ -61,9 +62,22 @@ class _RideOfferScreen extends State <RideOfferScreen> {
                   return ListView.builder(
                       itemCount: documents.length,
                       itemBuilder: (context, index) {
-                        var mylist = documents[index].data() as Map<
-                            String,
-                            dynamic>;
+                        var mylist = documents[index].data() as Map<String, dynamic>;
+                        DocumentReference requestDoc = FirebaseFirestore.instance.collection('requests').doc(Uid);
+
+                        Map<String, dynamic> updateData = {
+                          'fromLocation': mylist['from'],
+                          'toLocation': mylist['to'],
+                          'date': mylist['date'], // Firestore can handle DateTime objects directly
+                          // 'driver': driver_name,
+                          'time':mylist['time'],
+                          'price': mylist['fees'],
+                          'status': 'pending',
+                          'driverId':Uid,
+                          // 'username':name,
+                          'status': 'Pending',
+                          'userId':mylist['id'],
+                        };
                         return Card(
                           child: ListTile(
                               leading: Icon(Icons.car_crash_outlined,
@@ -113,8 +127,9 @@ class _RideOfferScreen extends State <RideOfferScreen> {
 
 
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pushNamed(context, '/addRide');
+
             },
             child: Text('Add Ride'),
           ),
