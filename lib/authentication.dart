@@ -11,7 +11,7 @@ class Authenticate{
 
     try {
       QuerySnapshot query = await FirebaseFirestore.instance
-          .collection('users')
+          .collection('driver')
           .where('email', isEqualTo: email)
           .get();
 

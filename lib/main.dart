@@ -13,6 +13,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'addRide.dart';
 import 'signUp.dart';
+import 'manageAccount.dart';
+import 'profile.dart';
+
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,6 +30,8 @@ void main() async{
     '/rides':(context)=>RideOfferScreen(),
       '/addRide':(context)=>AddRide(),
       '/SignUp':(context)=>SignUp(),
+      '/ManageAccount':(context)=>ManageAccount(),
+      '/Profile':(context)=> Profile(),
     },
   ));
 }

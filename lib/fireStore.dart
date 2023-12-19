@@ -24,14 +24,45 @@ class fireStore{
 
       // Get the document ID of the added ride
       // String rideId = result.id;
-  var userref = FirebaseFirestore.instance.collection('rides');
-  Future<List> fetchdata()async {
+  // var userref = FirebaseFirestore.instance.collection('rides');
+  // Future<List> fetchdata()async {
+  //   final uid = FirebaseAuth.instance.currentUser?.uid;
+  //   if (uid != null) {
+  //     var x = await userref.get();
+  //     List mydoc = x.docs;
+  //     return mydoc;
+  //   }
+  //   return [];
+  // }
+  Stream<List<DocumentSnapshot>> fetchdata() {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid != null) {
-      var x = await userref.get();
-      List mydoc = x.docs;
-      return mydoc;
+      return FirebaseFirestore.instance
+          .collection('rides')
+          .snapshots()
+          .map((snapshot) => snapshot.docs);
+
+    } else {
+      return Stream.value([]); // Return an empty stream if the user is not logged in
     }
-    return [];
   }
+
+  Future<void> editData(String firstName, String lastName, String mobile) async {
+    final userID=FirebaseAuth.instance.currentUser!.uid;
+    try {
+      await FirebaseFirestore.instance.collection('driver').doc(userID).update(
+          {
+
+            'firstName': firstName,
+            'lastName': lastName,
+            'phone':mobile,
+          });
+    } catch (e) {
+      print('Error updating task data... $e');
+      // Handle data saving errors here.
+    }
+  }
+
+
+
     }

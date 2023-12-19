@@ -124,7 +124,7 @@ class _AddRide extends State <AddRide> {
                     initialValue: DateTime.now().toString(),
 
                     dateLabelText: "Date",
-                      firstDate: DateTime(2022),
+                      firstDate: DateTime.now(),
                     lastDate: DateTime.now().add(
                         Duration(days: 365)
                     ),
@@ -180,29 +180,26 @@ class _AddRide extends State <AddRide> {
                       _fromController.text.toLowerCase().replaceAll(" ", "") == toOptions[1] ||
                         _toController.text.toLowerCase().replaceAll(" ", "") == toOptions[1] ||
                         _fromController.text.toLowerCase().replaceAll(" ", "") == toOptions[1]) {
+                        print("ana hna");
                          _showErrorSnackBar(
                              "Either source or destination must be either gate 3 or gate 4");
 
-                         Navigator.pushNamed(context, '/rides', arguments:
-                         {
-                           'To': _toController.text,
-                           'From': _fromController.text,
-                           'Date': Date,
-                           'Time': selectedTime,
-                           'Fees': _feesController.text,
-                         }
-                         );
 
 
+
+
+                      //  }
+                      // else{
                          _store.addRide(
                              _toController.text, _fromController.text,
                              selectedTime, Date, _feesController.text);
                          ScaffoldMessenger.of(context).showSnackBar(
                            SnackBar(
                              content: Text("Ride added successfully!"),
-                             duration: Duration(seconds: 3),
+                             duration: Duration(seconds: 2),
                            ),
                          );
+                         Navigator.pushReplacementNamed(context, '/rides');
                        }
                     },
                     child: Text('Add Ride'),
