@@ -75,7 +75,10 @@ class _AddRide extends State <AddRide> {
   }
 
 
-
+String generateID(){
+    var id=FirebaseFirestore.instance.collection('dummy').doc().id;
+    return id;
+}
 
 
   @override
@@ -190,9 +193,10 @@ class _AddRide extends State <AddRide> {
 
                        }
                       else{
+                        String rideId=generateID();
                          _store.addRide(
                              _toController.text, _fromController.text,
-                             selectedTime, Date, _feesController.text);
+                             selectedTime, Date, _feesController.text,rideId);
                          ScaffoldMessenger.of(context).showSnackBar(
                            SnackBar(
                              content: Text("Ride added successfully!"),
@@ -210,6 +214,53 @@ class _AddRide extends State <AddRide> {
           ),
         ),
       ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+
+            icon: IconButton(
+              icon: Icon(Icons.home),
+              onPressed: () {
+                Navigator.pushNamed(context, '/Profile');
+              },
+            ),
+            label: 'Profile',
+          ),
+          BottomNavigationBarItem(
+            icon: IconButton(
+              icon: Icon(Icons.history),
+              onPressed: () {
+                Navigator.pushNamed(context, '/rides');
+              },
+            ),
+            label: 'Activity',
+          ),
+          BottomNavigationBarItem(
+            icon: IconButton(
+              icon: Icon(Icons.account_circle),
+              onPressed: () {
+                Navigator.pushNamed(context, '/ManageAccount');
+              },
+            ),
+            label: 'Manage Account',
+          ),
+          BottomNavigationBarItem(
+            icon: IconButton(
+              icon:Icon(Icons.car_crash_outlined),
+
+              onPressed: () {
+                Navigator.pushNamed(context, '/addRide');
+              },
+            ),
+            label: 'Rides',
+          ),
+
+        ],
+        currentIndex: 3,
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.blueGrey,
+      ),
+
     );
 
   }

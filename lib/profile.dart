@@ -1,9 +1,8 @@
-import 'package:driver_demo/fireStore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'fireStore.dart';
+import 'DatabaseSQL.dart';
+
 
 class Profile extends StatefulWidget {
   const Profile({super.key});
@@ -18,64 +17,46 @@ class _ProfileState extends State<Profile> {
   FirebaseAuth auth = FirebaseAuth.instance;
   User? currentUser=FirebaseAuth.instance.currentUser;
 
-
+  Database2 myDB= Database2();
+  Map <String,dynamic> ?userRow;
+  String? fname;
+  String? lname;
+  String? mobile;
   signOut() async {
     await auth.signOut();
   }
-  // void _onItemTapped(int index) {
-  //   setState(() {
-  //     _selectedIndex = index;
-  //   });
-  //   switch (index) {
-  //     case 0:
-  //     // Navigate to Home page
-  //       Navigator.pushNamed(context, '/Profile');
-  //       break;
-  //     case 1:
-  //     // Navigate to Activity page
-  //     // Replace '/ActivityPage' with the actual route for your Activity page
-  //       Navigator.pushNamed(context, '/rides');
-  //       break;
-  //     case 2:
-  //     // Navigate to Manage Account page
-  //     // Replace '/ManageAccountPage' with the actual route for your Manage Account page
-  //       Navigator.pushNamed(context, '/ManageAccount');
-  //       break;
-  //   }
-  // }
 
 
 
-  // User is signed in
+  String ?email;
 
-String ?fname;
-  String? lname;
-  String? mobile;
-
-  Future <void> FetchUser() async {
-    final userID = FirebaseAuth.instance.currentUser!.uid;
-    var snapshot = await FirebaseFirestore.instance.collection('driver').doc(
-        userID).get();
-    Map<String,dynamic>? data=snapshot as Map<String, dynamic>?;
-    fname=data!['firstName'];
-    lname=data!['lastName'];
-    mobile=data!['phone'];
-
+  void readData() async{
+    String UID=currentUser!.uid;
+    String query="SELECT * FROM USERS WHERE UID = '$UID'";
+    var response=await myDB.reading(query);
+    userRow=response[0];
+    fname=userRow?['FNAME'].toString();
+    lname=userRow?['LNAME'].toString();
+    setState(() {
+      fname=userRow?['FNAME'].toString();
+      lname=userRow?['LNAME'].toString();
+      mobile =userRow?['Mobile'].toString();
+    });
 
   }
+
+  // User is signed in
 
 
 
   @override
-  void initState() {
-    FetchUser();
+  void initState(){
+    readData();
+
     // TODO: implement initState
     super.initState();
+
   }
-
-
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +81,7 @@ String ?fname;
               ),
             ),
             SizedBox(height: 20),
-            Text('${fname} ${lname}',
+            Text('$fname $lname',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             Row(
@@ -129,26 +110,52 @@ String ?fname;
           ],
         ),
       ),
-      // bottomNavigationBar: BottomNavigationBar(
-      //   items: const <BottomNavigationBarItem>[
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.home),
-      //       label: 'Profile',
-      //     ),
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.history),
-      //       label: 'Activity',
-      //
-      //     ),
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.account_circle),
-      //       label: 'Manage Account',
-      //     ),
-      //   ],
-      //   currentIndex: _selectedIndex,
-      //   selectedItemColor: Colors.blue,
-      //   onTap: _onItemTapped,
-      // ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+
+            icon: IconButton(
+              icon: Icon(Icons.home),
+              onPressed: () {
+                Navigator.pushNamed(context, '/Profile');
+              },
+            ),
+            label: 'Profile',
+          ),
+          BottomNavigationBarItem(
+            icon: IconButton(
+              icon: Icon(Icons.history),
+              onPressed: () {
+                Navigator.pushNamed(context, '/rides');
+              },
+            ),
+            label: 'Activity',
+          ),
+          BottomNavigationBarItem(
+            icon: IconButton(
+              icon: Icon(Icons.account_circle),
+              onPressed: () {
+                Navigator.pushNamed(context, '/ManageAccount');
+              },
+            ),
+            label: 'Manage Account',
+          ),
+          BottomNavigationBarItem(
+            icon: IconButton(
+              icon:Icon(Icons.car_crash_outlined),
+
+              onPressed: () {
+                Navigator.pushNamed(context, '/addRide');
+              },
+            ),
+            label: 'Rides',
+          ),
+
+        ],
+        currentIndex: 0,
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.blueGrey,
+      ),
     );
   }
 }

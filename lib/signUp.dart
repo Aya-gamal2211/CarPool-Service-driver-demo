@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 // import 'package:firebase_core/firebase_core.dart';
 // import 'DatabaseSQL.dart';
 import 'authentication.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
@@ -23,7 +24,10 @@ class _SignUpState extends State<SignUp> {
   TextEditingController _confirmMobileController=TextEditingController();
   GlobalKey <FormState> _formKey= GlobalKey();
   // FirebaseAuth _auth = FirebaseAuth.instance;
- Authenticate _auth= Authenticate();
+
+  FirebaseAuth _auth = FirebaseAuth.instance;
+
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   bool _validateName(String value) {
     return RegExp(r"^[a-zA-Z]+$").hasMatch(value);
@@ -34,15 +38,22 @@ class _SignUpState extends State<SignUp> {
   bool _validatePassword(String value) {
     return value.length >= 8;
   }
-  void _register() async {
+  Future<void> _register() async {
     if (_formKey.currentState!.validate()) {
       // Registration logic here
-     _auth.signUpWithEmailAndPassword(_emailController.text, _passwordController.text, _fNameController.text,_lNameController.text, _confirmMobileController.text);
+      try {
+        Authenticate auth=Authenticate();
+        await auth.signUpWithEmailAndPassword(_emailController.text, _passwordController.text, _fNameController.text,_lNameController.text, _confirmMobileController.text);
+      }
+      on FirebaseAuthException catch (e) {
+        print(e);
+      }
       print("Form is valid. Proceed with registration.");
 
     } else {
       print("Form is not valid.");
     }
+
   }
 
   void _showErrorSnackBar(String errorMessage) {
@@ -145,9 +156,26 @@ class _SignUpState extends State<SignUp> {
                     onPressed: ()async{
 
                       _handleSignUp();
-                      _register();
+                   await _register();
+                      _auth.signInWithEmailAndPassword(
+                      email: _emailController.text.trim(),
+                      password: _passwordController.text.trim(),
 
-                    },
+                      );
+
+                      final UID= FirebaseAuth.instance.currentUser?.uid;
+                      DocumentReference docRef = firestore.collection('requests').doc(UID);
+                      docRef.get().then((docSnapshot) {
+                        // Check if the document exists
+                        if (!docSnapshot.exists) {
+                          // If the document does not exist, create it with an empty list
+                          docRef.set({'Requests': []});
+                        }
+                      });;
+                      Navigator.pushReplacementNamed(context, '/SignIn');
+    },
+
+
                     child: Text('Sign Up'),
                   ),
                 ],

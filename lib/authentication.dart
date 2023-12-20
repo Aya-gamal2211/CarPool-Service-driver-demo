@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'DatabaseSQL.dart';
 class Authenticate{
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -24,7 +25,7 @@ class Authenticate{
   }
 
   //Sign up with email and password
-  Future<void> signUpWithEmailAndPassword(String email, String password ,String firstName, String LastName ,String phone) async {
+  Future<void> signUpWithEmailAndPassword(String email, String password ,String firstName, String lastName ,String phone) async {
     try {
       UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email:email,
@@ -32,9 +33,12 @@ class Authenticate{
       );
       String UID=userCredential.user!.uid;
 
-      // await mydb.write(''' INSERT INTO 'USERS' ('UID','FNAME','LNAME') VALUES ('$UID',' ${_fNameController.text}','${_lNameController.text}') ''' );
+
       if (userCredential != null) {
-        await saveUserData(UID, email,firstName,LastName,phone); // Save user data to Firestore
+        await saveUserData(UID, email,firstName,lastName,phone); // Save user data to Firestore
+        Database2 mydb= Database2();
+        await mydb.write(''' INSERT INTO 'USERS' ('UID','FNAME','LNAME','Mobile') VALUES ('$UID',' $firstName','$lastName',$phone) ''' );
+
       }
     }
     on FirebaseAuthException catch (e) {

@@ -20,208 +20,248 @@ class RideOfferScreen extends StatefulWidget {
 List <String> Destinations=["Gate 3", 'Gate 4'];
 String Source='Faculty of Engineering Campus';
 
+
 class _RideOfferScreen extends State <RideOfferScreen> {
 
   final Uid=FirebaseAuth.instance.currentUser!.uid;
   fireStore mydata = fireStore();
 
+
+
+  Future<void> updateRideStatusInHistory(Map<String, dynamic> rideToUpdate, String newStatus) async {
+    var historyDocRef = FirebaseFirestore.instance.collection('history').doc(rideToUpdate['user']);
+
+    await FirebaseFirestore.instance.runTransaction((transaction) async {
+      var historySnapshot = await transaction.get(historyDocRef);
+
+      if (historySnapshot.exists && historySnapshot.data()!.containsKey('History')) {
+        var historyData = historySnapshot.data();
+        var historyArray = List<Map<String, dynamic>>.from(historyData!['History']);
+
+        // Find the index of the ride to update
+        var index = historyArray.indexWhere((ride) =>
+
+            ride['rideID'] == rideToUpdate['rideID']
+
+        );
+
+        // If found, update the status of the ride
+        if (index != -1) {
+          historyArray[index]['status'] = newStatus;
+        } else {
+          // Handle the case where the ride is not found
+          print("Ride not found in history.");
+          return;
+        }
+
+        // Write the updated history array back to Firestore
+        transaction.set(historyDocRef, {'History': historyArray}, SetOptions(merge: true));
+      } else {
+        // Handle the case where the History key doesn't exist, or the document doesn't exist
+        print("No history found for this user.");
+      }
+    }).catchError((error) {
+      print("Error updating ride status in history: $error");
+    });
+  }
+
+
+
+  Stream<List<Map<String, dynamic>>> fetchrequests() {
+    User? currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser == null) {
+      return Stream.value(
+          []); // Return an empty stream if the user is not logged in
+    }
+
+    // Listen for real-time updates in the 'requests' document for the current user
+    return FirebaseFirestore.instance
+        .collection('requests')
+        .doc(Uid)
+        .snapshots()
+        .map<List<Map<String, dynamic>>>((requestSnapshot) {
+      if (!requestSnapshot.exists ||
+          !requestSnapshot.data()!.containsKey('Requests')) {
+        return [
+        ]; // Return an empty list if the document or key 'Requests' does not exist
+      }
+
+      List<dynamic> requestsArray = requestSnapshot.get('Requests');
+      // Transform the dynamic list to a list of maps
+      return requestsArray.map<Map<String, dynamic>>((requestItem) {
+        return {
+          'from': requestItem['from'],
+          'to': requestItem['to'],
+          'date': requestItem['date'], // Firestore can handle DateTime objects directly
+          // 'driver': driver_name,
+          'time':requestItem['time'],
+          'fees': requestItem['fees'],
+          'user':requestItem['user'],
+          'status': requestItem['status'],
+          'driverId':requestItem['driverId'],
+          'rideID':requestItem['rideID'],
+        };
+      }).toList();
+    });
+  }
   @override
   Widget build(BuildContext context) {
     setState(() {
-
     });
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Your Ride Offers'),
-        centerTitle: true,
-      ),
-      body:
+    appBar: AppBar(
+    title: Text('Available Routes'),
+    ),
+    body:
+    StreamBuilder<List<Map<String,dynamic>>>(
+      // stream: FirebaseFirestore.instance
+      //     .collection('requests')
+      //     .doc(Uid)
+      //     .snapshots(),
+      stream: fetchrequests(),
+      builder: (context, snapshot) {
 
-      Column(
-        children: [
-          Padding(
-            padding: EdgeInsets.all(16.0),
-            child:
-            StreamBuilder<List<DocumentSnapshot>>(
-                stream: mydata.fetchdata(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return CircularProgressIndicator();
-                  }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        }
 
-                  if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
-                  }
+        if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        }
 
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Text('No data available');
-                  }
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Text('No data available');
+        }
 
-                  List<DocumentSnapshot> documents = snapshot.data!;
-                  return ListView.builder(
-                      itemCount: documents.length,
-                      itemBuilder: (context, index) {
-                        var mylist = documents[index].data() as Map<String, dynamic>;
-                        DocumentReference requestDoc = FirebaseFirestore.instance.collection('requests').doc(Uid);
+        List<Map<String, dynamic>> requests = snapshot.data!;
+         // var requests=snapshot.data!;
+        return ListView.builder(
+          itemCount: requests.length,
+          itemBuilder: (context, index) {
+            var request = requests[index] ;
+            return Card(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              color: Colors.white,
+              elevation: 4,
+              margin: EdgeInsets.all(10),
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'From: ${request['from']}',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'To: ${request['to']}',
+                      style: TextStyle(fontSize: 16, color: Colors.black54),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Date: ${request['date']}',
+                      style: TextStyle(fontSize: 16, color: Colors.black54),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Time: ${request['time']}',
+                      style: TextStyle(fontSize: 16, color: Colors.black54),
+                    ),
+                    Text(
+                      'Price : ${request['fees']}',
+                      style: TextStyle(fontSize: 16, color: Colors.black54),
+                    ),
+                    SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: <Widget>[
+                        ElevatedButton(
+                          child: Text('Accept'),
+                          onPressed: () async{
+                            try {
+                              await FirebaseFirestore.instance.collection('requests').doc(Uid).update({
+                                'Requests': FieldValue.arrayRemove([request])
+                              });
+                              print('Update successful!');
+                            } catch (e) {
+                              print('Error updating Firestore: $e');
+                            }
+                            updateRideStatusInHistory(request,"Accepted 👍");
+                          },
+                          style: ElevatedButton.styleFrom(primary: Colors.blue),
+                        ),
+                        SizedBox(width: 8),
+                        OutlinedButton(
+                          child: Text('Reject'),
+                          onPressed: () async{
+                            await FirebaseFirestore.instance.collection('requests').doc(request['Id']).update(
+                                {'Requests':FieldValue.arrayRemove([request])});
+                            updateRideStatusInHistory(request,"Rejected 😪");
+                          },
+                          style: OutlinedButton.styleFrom(primary: Colors.blue),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    ),
 
-                        Map<String, dynamic> updateData = {
-                          'fromLocation': mylist['from'],
-                          'toLocation': mylist['to'],
-                          'date': mylist['date'], // Firestore can handle DateTime objects directly
-                          // 'driver': driver_name,
-                          'time':mylist['time'],
-                          'price': mylist['fees'],
-                          'status': 'pending',
-                          'driverId':Uid,
-                          // 'username':name,
-                          'status': 'Pending',
-                          'userId':mylist['id'],
-                        };
-                        return Card(
-                          child: ListTile(
-                              leading: Icon(Icons.car_crash_outlined,
-                                color: Colors.blue,),
+    bottomNavigationBar: BottomNavigationBar(
+        items: <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
 
-                              title: Column(
+            icon: IconButton(
+              icon: Icon(Icons.home),
+              onPressed: () {
+                Navigator.pushNamed(context, '/Profile');
+              },
+            ),
+            label: 'Profile',
+          ),
+          BottomNavigationBarItem(
+            icon: IconButton(
+              icon: Icon(Icons.history),
+              onPressed: () {
+                Navigator.pushNamed(context, '/rides');
+              },
+            ),
+            label: 'Activity',
+          ),
+          BottomNavigationBarItem(
+            icon: IconButton(
+              icon: Icon(Icons.account_circle),
+              onPressed: () {
+                Navigator.pushNamed(context, '/ManageAccount');
+              },
+            ),
+            label: 'Manage Account',
+          ),
+          BottomNavigationBarItem(
+            icon: IconButton(
+              icon:Icon(Icons.car_crash_outlined),
 
-                                children: [
-                                  // Text("Destination : ${mylist[index].data()['to']}",style: TextStyle(
-                                  Text("Destination : ${mylist['to']}",
-                                    style: TextStyle(
-                                      color: Colors.blueGrey,
-                                    ),),
-                                  // Text("Source : ${mylist[index].data()['from']}",style: TextStyle(
-                                  Text("Destination : ${mylist['from']}",
-                                    style: TextStyle(
-                                      color: Colors.blueGrey,
-                                    ),),
-                                ],
-                              ),
-                              subtitle: Column(
-
-                                children: [
-                                  // Text("Date : ${mylist[index].data()['date']}",style: TextStyle(
-                                  Text("Destination : ${mylist['date']}",
-                                    style: TextStyle(
-                                      color: Colors.blueGrey,),
-
-                                  ),
-                                  // Text("Time : ${mylist[index].data()['time']}",style: TextStyle(
-                                  Text("Destination : ${mylist['time']}",
-                                    style: TextStyle(
-                                      color: Colors.blueGrey,),
-                                  ),
-                                  // Text("Fees :  \$ ${mylist[index].data()['fees']}",
-                                  Text("Fees :  \$ ${mylist['fees']}",
-                                    style: TextStyle(
-                                      color: Colors.blueGrey,),
-                                  ),
-                                ],
-                              )),
-                        );
-                      });
-                }),
-
+              onPressed: () {
+                Navigator.pushNamed(context, '/addRide');
+              },
+            ),
+            label: 'Rides',
           ),
 
-
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pushNamed(context, '/addRide');
-
-            },
-            child: Text('Add Ride'),
-          ),
         ],
+        currentIndex: 1,
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.blueGrey,
       ),
 
     );
   }
 }
 
-
-//
-//
-// }
-// class RideOfferScreen extends StatelessWidget {
-//   final fireStore mydata = fireStore();
-//
-//   @override
-//   Widget build(BuildContext context) {
-//
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text('Your Ride Offers'),
-//         centerTitle: true,
-//       ),
-//       body: Column(
-//         children: [
-//           Padding(
-//             padding: EdgeInsets.all(16.0),
-//             child: _buildRideList(context),
-//           ),
-//           ElevatedButton(
-//             onPressed: () {
-//               Navigator.pushNamed(context, '/addRide');
-//             },
-//             child: Text('Add Ride'),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-//
-//   Widget _buildRideList(BuildContext context) {
-//     return FutureBuilder(
-//       future: mydata.fetchdata(),
-//       builder: (context, snapshot) {
-//         if (snapshot.hasData) {
-//           List mylist = snapshot.data!;
-//           return ListView.builder(
-//             itemCount: mylist.length,
-//             itemBuilder: (context, index) {
-//               return _buildRideCard(mylist[index].data());
-//             },
-//           );
-//         } else if (snapshot.hasError) {
-//           return Text("Error: ${snapshot.error}");
-//         } else {
-//           return CircularProgressIndicator();
-//         }
-//       },
-//     );
-//   }
-//
-//   Widget _buildRideCard(Map<String, dynamic> rideData) {
-//     return Card(
-//       child: ListTile(
-//         leading: Icon(Icons.car_crash_outlined, color: Colors.blue),
-//         title: Column(
-//           children: [
-//             Text("Destination: ${rideData['to']}",
-//               style: TextStyle(color: Colors.blueGrey),
-//             ),
-//             Text("Source: ${rideData['from']}",
-//               style: TextStyle(color: Colors.blueGrey),
-//             ),
-//           ],
-//         ),
-//         subtitle: Column(
-//           children: [
-//             Text("Date: ${rideData['date']}",
-//               style: TextStyle(color: Colors.blueGrey),
-//             ),
-//             Text("Time: ${rideData['time']}",
-//               style: TextStyle(color: Colors.blueGrey),
-//             ),
-//             Text("Fees: \$${rideData['fees']}",
-//               style: TextStyle(color: Colors.blueGrey),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
-//

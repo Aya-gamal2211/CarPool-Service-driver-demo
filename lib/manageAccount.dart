@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'fireStore.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
+import 'DatabaseSQL.dart';
 class ManageAccount extends StatefulWidget {
   const ManageAccount({super.key});
 
@@ -18,25 +18,31 @@ class _ManageState extends State<ManageAccount> {
   TextEditingController _lastNameController = TextEditingController();
   TextEditingController _mobileController = TextEditingController();
 
-  Future <void> FetchUser() async {
-    final userID = FirebaseAuth.instance.currentUser!.uid;
-    var snapshot = await FirebaseFirestore.instance.collection('driver').doc(
-        userID).get();
-    Map<String,dynamic>? data=snapshot as Map<String, dynamic>?;
-    _firstNameController.text=data!['firstName'];
-    _lastNameController.text=data!['lastName'];
-    _mobileController.text=data!['phone'];
+  Database2 myDB= Database2();
+  Map <String,dynamic> ?userRow;
+  User? currentUser=FirebaseAuth.instance.currentUser;
+  void readData() async{
+    String UID=currentUser!.uid;
+    String query="SELECT * FROM USERS WHERE UID = '$UID'";
+    var response=await myDB.reading(query);
+    userRow=response[0];
+    _firstNameController.text=userRow!['FNAME'].toString();
+    _lastNameController.text=userRow!['LNAME'].toString();
+    _mobileController.text=userRow!['Mobile'].toString();
 
 
   }
+
+
+
   @override
   void initState() {
-    FetchUser();
+    readData();
+
     // TODO: implement initState
     super.initState();
+
   }
-
-
 
 
   @override

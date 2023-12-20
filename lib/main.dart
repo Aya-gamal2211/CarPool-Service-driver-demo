@@ -32,6 +32,7 @@ void main() async{
       '/SignUp':(context)=>SignUp(),
       '/ManageAccount':(context)=>ManageAccount(),
       '/Profile':(context)=> Profile(),
+      '/SignIn':(context)=>SignIn(),
     },
   ));
 }
