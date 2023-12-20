@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'DatabaseSQL.dart';
+import 'package:connectivity/connectivity.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 
 class Profile extends StatefulWidget {
@@ -29,6 +31,7 @@ class _ProfileState extends State<Profile> {
 
 
   String ?email;
+  FirebaseFirestore firestore=FirebaseFirestore .instance;
 
   void readData() async{
     String UID=currentUser!.uid;
@@ -37,6 +40,14 @@ class _ProfileState extends State<Profile> {
     userRow=response[0];
     fname=userRow?['FNAME'].toString();
     lname=userRow?['LNAME'].toString();
+    var connectivityResult = await (Connectivity().checkConnectivity());
+    if (connectivityResult != ConnectivityResult.none){
+      firestore.collection('users').doc(currentUser!.uid).update({
+        'firstName':fname,
+        'lastName':lname,
+        'phone':userRow?['Mobile'].toString(),
+      });
+    }
     setState(() {
       fname=userRow?['FNAME'].toString();
       lname=userRow?['LNAME'].toString();
