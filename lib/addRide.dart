@@ -224,7 +224,7 @@ String generateID(){
             icon: IconButton(
               icon: Icon(Icons.home),
               onPressed: () {
-                Navigator.pushNamed(context, '/Profile');
+                Navigator.pushReplacementNamed(context, '/Profile');
               },
             ),
             label: 'Profile',
@@ -233,7 +233,7 @@ String generateID(){
             icon: IconButton(
               icon: Icon(Icons.history),
               onPressed: () {
-                Navigator.pushNamed(context, '/rides');
+                Navigator.pushReplacementNamed(context, '/rides');
               },
             ),
             label: 'Activity',
@@ -252,7 +252,7 @@ String generateID(){
               icon:Icon(Icons.car_crash_outlined),
 
               onPressed: () {
-                Navigator.pushNamed(context, '/addRide');
+                Navigator.pushReplacementNamed(context, '/addRide');
               },
             ),
             label: 'Rides',
