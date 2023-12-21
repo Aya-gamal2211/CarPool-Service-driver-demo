@@ -178,30 +178,171 @@ class _RideOfferScreen extends State <RideOfferScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: <Widget>[
+
+
                         ElevatedButton(
+
                           child: Text('Accept'),
-                          onPressed: () async{
-                            try {
-                              await FirebaseFirestore.instance.collection('requests').doc(Uid).update({
-                                'Requests': FieldValue.arrayRemove([request])
-                              });
-                              print('Update successful!');
-                            } catch (e) {
-                              print('Error updating Firestore: $e');
+
+                          onPressed: () async {
+                            String dateString = request['date']; // Example date-time from screenshot
+                            String timeString = request['time']; // Example time in 12-hour format
+
+// Extract the date part from the dateTimeString
+//                       String dateString = dateTimeString.split("T")[0]; // "2023-12-13"
+
+// Convert 12-hour format time to 24-hour format
+                            int hour = int.parse(timeString.split(":")[0]);
+                            int minute = int.parse(
+                                timeString.split(":")[1].split(" ")[0]);
+                            String amPm = timeString.split(" ")[1];
+                            if (amPm == "PM" && hour != 12) {
+                              hour = hour + 12;
+                            } else if (amPm == "AM" && hour == 12) {
+                              hour = 0;
                             }
-                            updateRideStatusInHistory(request,"Accepted 👍");
+
+// Combine date and time into a single DateTime object
+                            DateTime rideDateTime = DateTime(
+                                int.parse(dateString.split("-")[0]), // Year
+                                int.parse(dateString.split("-")[1]), // Month
+                                int.parse(dateString.split("-")[2]), // Day
+                                hour,
+                                minute
+                            );
+
+                            // print(rideDateTime);
+
+// Determine cutoff DateTime
+                            DateTime cutoff = DateTime.now();
+                            if (rideDateTime.hour == 7 && rideDateTime.minute == 30) { // Morning ride
+                              cutoff = DateTime(rideDateTime.year, rideDateTime.month, rideDateTime.day, 23, 30).subtract(Duration(days: 1));
+                            } else if (rideDateTime.hour == 17 && rideDateTime.minute == 30) { // Evening ride
+                              cutoff = DateTime(rideDateTime.year, rideDateTime.month, rideDateTime.day, 16, 30);
+                            } else {
+                              // Handle other cases or set a default cutoff
+                            }
+
+                            // Check if current time is after the cutoff
+                            if (DateTime.now().isAfter(cutoff)) {
+                              // Show message that the cutoff time has passed
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: Text("Time Passed 🤦‍"),
+                                    content: Text(
+                                        "Unfortunately, The Time to accept this trip has passed 😢"),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        child: Text("OK"),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            }
+                           else {
+                              try {
+                                await FirebaseFirestore.instance.collection(
+                                    'requests').doc(Uid).update({
+                                  'Requests': FieldValue.arrayRemove([request])
+                                });
+                                print('Update successful!');
+                              } catch (e) {
+                                print('Error updating Firestore: $e');
+                              }
+                              updateRideStatusInHistory(request, "Accepted 👍");
+                            }
                           },
-                          style: ElevatedButton.styleFrom(primary: Colors.blue),
+                            style:
+                            ElevatedButton.styleFrom(primary: Colors.blue)
+
+
                         ),
                         SizedBox(width: 8),
                         OutlinedButton(
                           child: Text('Reject'),
-                          onPressed: () async{
-                            await FirebaseFirestore.instance.collection('requests').doc(request['Id']).update(
-                                {'Requests':FieldValue.arrayRemove([request])});
-                            updateRideStatusInHistory(request,"Rejected 😪");
-                          },
-                          style: OutlinedButton.styleFrom(primary: Colors.blue),
+                          onPressed: () async {
+                            String dateString = request['date']; // Example date-time from screenshot
+                            String timeString = request['time']; // Example time in 12-hour format
+
+// Extract the date part from the dateTimeString
+//                       String dateString = dateTimeString.split("T")[0]; // "2023-12-13"
+
+// Convert 12-hour format time to 24-hour format
+                            int hour = int.parse(timeString.split(":")[0]);
+                            int minute = int.parse(
+                                timeString.split(":")[1].split(" ")[0]);
+                            String amPm = timeString.split(" ")[1];
+                            if (amPm == "PM" && hour != 12) {
+                              hour = hour + 12;
+                            } else if (amPm == "AM" && hour == 12) {
+                              hour = 0;
+                            }
+
+// Combine date and time into a single DateTime object
+                            DateTime rideDateTime = DateTime(
+                                int.parse(dateString.split("-")[0]), // Year
+                                int.parse(dateString.split("-")[1]), // Month
+                                int.parse(dateString.split("-")[2]), // Day
+                                hour,
+                                minute
+                            );
+
+                            // print(rideDateTime);
+
+// Determine cutoff DateTime
+                            DateTime cutoff = DateTime.now();
+                            if (rideDateTime.hour == 7 &&
+                                rideDateTime.minute == 30) { // Morning ride
+                              cutoff = DateTime(rideDateTime.year, rideDateTime.month, rideDateTime.day, 23, 30).subtract(Duration(days: 1));
+                            } else if (rideDateTime.hour == 17 && rideDateTime.minute == 30) { // Evening ride
+                              cutoff = DateTime(
+                                  rideDateTime.year, rideDateTime.month,
+                                  rideDateTime.day, 16, 30);
+                            } else {
+                              // Handle other cases or set a default cutoff
+                            }
+
+                            // Check if current time is after the cutoff
+                            if (DateTime.now().isAfter(cutoff)) {
+                              // Show message that the cutoff time has passed
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: Text("Time Passed 🤦‍"),
+                                    content: Text(
+                                        "Unfortunately, The Time to reject this trip has passed 😢"),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        child: Text("OK"),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            }
+                            else {
+                              await FirebaseFirestore.instance.collection(
+                                  'requests').doc(request['Id']).update(
+                                  {
+                                    'Requests': FieldValue.arrayRemove(
+                                        [request])
+                                  });
+                              updateRideStatusInHistory(request, "Rejected 😪");
+                            }
+
+                            style: OutlinedButton.styleFrom(primary: Colors.blue);
+
+                          }
                         ),
                       ],
                     ),
