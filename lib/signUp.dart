@@ -29,15 +29,7 @@ class _SignUpState extends State<SignUp> {
 
   FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-  bool _validateName(String value) {
-    return RegExp(r"^[a-zA-Z]+$").hasMatch(value);
-  }
-  bool _validateEmail(String value) {
-    return RegExp(r"^[a-zA-Z0-9._]+@eng\.asu\.edu\.eg$").hasMatch(value);
-  }
-  bool _validatePassword(String value) {
-    return value.length >= 8;
-  }
+
   Future<void> _register() async {
     if (_formKey.currentState!.validate()) {
       // Registration logic here
@@ -67,7 +59,7 @@ class _SignUpState extends State<SignUp> {
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
-  void _handleSignUp() {
+  int _handleSignUp() {
     // Implement your signup logic here
     String email = _emailController.text;
     String password = _passwordController.text;
@@ -76,17 +68,17 @@ class _SignUpState extends State<SignUp> {
     String fname= _fNameController.text;
     String lname= _lNameController.text;
     // Validate input
-    if (email.isEmpty || password.isEmpty || confirmPassword.isEmpty || fname.isEmpty || lname.isEmpty) {
+    if (email.isEmpty || password.isEmpty || confirmPassword.isEmpty || fname.isEmpty || lname.isEmpty || email==null || password==null || confirmPassword==null || fname ==null || lname==null) {
       // Show an error message or toast
-      _showErrorSnackBar("Please fill in the empty fields");
+      _showErrorSnackBar("Please fill in the empty fields and cant be null");
 
-      return;
+      return 0;
     }
 
     if (password != confirmPassword) {
       // Show password mismatch error
       _showErrorSnackBar("Password mismatch");
-      return ;
+      return 0;
     }
 
 
@@ -94,8 +86,51 @@ class _SignUpState extends State<SignUp> {
     // Implement your signup API call or authentication logic here
 
     // For now, print the input
+
     print('Email: $email, Password: $password');
+    return 1;
   }
+  String? _validateName(String? value) {
+    if (value == null || value.isEmpty || !RegExp(r'^[a-zA-Z]+$').hasMatch(value)) {
+      return 'Please enter a valid name';
+    }
+    return null;
+  }
+
+  String? _validateEmail(String? value) {
+    if (value == null || value.isEmpty || !RegExp(r'^\d{2}p\d{4}@eng\.asu\.edu\.eg$').hasMatch(value)) {
+      return 'Email must be in the format of xxpxxx@eng.asu.edu.eg';
+    }
+    return null;
+  }
+
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty || value.length < 8) {
+      return 'Password must be at least 8 characters long';
+    }
+    return null;
+  }
+
+  String? _validateMobile(String? value) {
+    // Check if the value is null or empty
+    if (value == null || value.isEmpty) {
+      return 'Please enter a valid mobile number';
+    }
+
+    // Check if the value consists of digits only
+    if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
+      return 'Mobile number should contain only digits';
+    }
+
+    // Check if the value has a specific length (adjust as needed)
+    if (value.length != 10) {
+      return 'Mobile number should be 10 digits';
+    }
+
+    // Return null if the validation passes
+    return null;
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -113,41 +148,49 @@ class _SignUpState extends State<SignUp> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  TextField(
+                  TextFormField(
 
                     controller: _fNameController,
                     decoration: InputDecoration(labelText: 'First Name'),
+                    validator: _validateName,
                   ),
                   SizedBox(height: 16.0),
-                  TextField(
+                  TextFormField(
 
                     controller: _lNameController,
                     decoration: InputDecoration(labelText: 'Last Name'),
+                    validator: _validateName,
                   ),
                   SizedBox(height: 16.0),
-                  TextField(
+                  TextFormField(
 
                     controller: _emailController,
                     decoration: InputDecoration(labelText: 'Email'),
+                    validator: _validateEmail,
                   ),
                   SizedBox(height: 16.0),
 
 
-                  TextField(
+                  TextFormField(
                     controller: _passwordController,
                     decoration: InputDecoration(labelText: 'Password'),
                     obscureText: true,
+                    validator:_validatePassword,
+
                   ),
+
                   SizedBox(height: 16.0),
-                  TextField(
+                  TextFormField(
                     controller: _confirmPasswordController,
                     decoration: InputDecoration(labelText: 'Confirm Password'),
                     obscureText: true,
+                    validator: _validatePassword,
                   ),
                   SizedBox(height: 16.0),
-                  TextField(
+                  TextFormField(
                     controller: _confirmMobileController,
                     decoration: InputDecoration(labelText: 'Add Mobile Number'),
+                    validator: _validateMobile,
 
                   ),
 

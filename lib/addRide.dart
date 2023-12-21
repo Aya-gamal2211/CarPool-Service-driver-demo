@@ -138,6 +138,7 @@ String generateID(){
                     onChanged: (selectedDate) {
                       // Handle the selected date if needed
                       setState(() {
+
                         Date=selectedDate!;
                       });
 
@@ -157,6 +158,13 @@ String generateID(){
                     value: selectedTime,
                     onChanged: (value) {
                       setState(() {
+
+                        if (_toController.text.toLowerCase().replaceAll(" ","")==toOptions[0] || _toController.text.toLowerCase().replaceAll(" ","")==toOptions[1]){
+                          selectedTime=timeOptions[1];
+                        }
+                        else{
+                          selectedTime=timeOptions[0];
+                        }
                         selectedTime = value!;
                       });
                     },
@@ -183,14 +191,9 @@ String generateID(){
                       _fromController.text.toLowerCase().replaceAll(" ", "") == toOptions[1] ||
                         _toController.text.toLowerCase().replaceAll(" ", "") == toOptions[1] ||
                         _fromController.text.toLowerCase().replaceAll(" ", "") == toOptions[1]) {
-                        print("ana hna");
+                         // print("ana hna");
                          _showErrorSnackBar(
                              "Either source or destination must be either gate 3 or gate 4");
-
-
-
-
-
                        }
                       else{
                         String rideId=generateID();
