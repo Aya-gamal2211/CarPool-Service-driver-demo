@@ -62,7 +62,7 @@ class _AddRide extends State <AddRide> {
       // Now you have the validated data, you can proceed with further processing
 
       // Validate input
-      if (To.isEmpty || From.isEmpty || selectedTime.isEmpty || Date.isEmpty || Fees.isEmpty) {
+      if (To.isEmpty || From.isEmpty || selectedTime.isEmpty || Date.isEmpty || Fees.isEmpty || To==null || From==null || Fees==null || selectedTime==null ||Date==null) {
         // Show an error message or toast
         _showErrorSnackBar("Please fill in the empty fields");
 
@@ -79,6 +79,22 @@ String generateID(){
     var id=FirebaseFirestore.instance.collection('dummy').doc().id;
     return id;
 }
+
+  @override
+  void initState() {
+    super.initState();
+    // Add a listener to _toController to update selectedTime when it changes
+    _toController.addListener(() {
+      setState(() {
+        if (_toController.text.toLowerCase().replaceAll(" ", "") == toOptions[0] ||
+            _toController.text.toLowerCase().replaceAll(" ", "") == toOptions[1]) {
+          selectedTime = timeOptions[1];
+        } else {
+          selectedTime = timeOptions[0];
+        }
+      });
+    });
+  }
 
 
   @override
@@ -97,11 +113,12 @@ String generateID(){
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  TextField(
+                  TextFormField(
 
                     controller: _toController,
                     decoration: InputDecoration(labelText: 'Destination',
                     prefixIcon: Icon(Icons.location_searching)),
+
                   ),
                   SizedBox(height: 16.0),
 
@@ -115,7 +132,7 @@ String generateID(){
                   TextField(
 
                     controller: _feesController,
-                    decoration: InputDecoration(labelText: 'Fees to be paid',
+                    decoration: InputDecoration(labelText: 'Fees to be paid \$',
                     prefixIcon: Icon(Icons.money)),
 
                   ),
@@ -146,11 +163,6 @@ String generateID(){
                     },
 
                   ),
-                  // TextField(
-                  //   controller: _dateController,
-                  //   decoration: InputDecoration(labelText: 'Date: 2023-12-25'),
-                  //
-                  // ),
                   SizedBox(height: 16.0),
                   DropdownButton<String>(
 
@@ -158,15 +170,9 @@ String generateID(){
                     value: selectedTime,
                     onChanged: (value) {
                       setState(() {
+                                  selectedTime = value!;
+                                    });
 
-                        if (_toController.text.toLowerCase().replaceAll(" ","")==toOptions[0] || _toController.text.toLowerCase().replaceAll(" ","")==toOptions[1]){
-                          selectedTime=timeOptions[1];
-                        }
-                        else{
-                          selectedTime=timeOptions[0];
-                        }
-                        selectedTime = value!;
-                      });
                     },
                     items: timeOptions.map((time) {
                       return DropdownMenuItem<String>(
@@ -182,32 +188,38 @@ String generateID(){
                   ElevatedButton(
                     onPressed: (){
 
-                      _handleRides();
-
-                       if (_toController.text.toLowerCase().replaceAll(" ", "") == _fromController.text.toLowerCase().replaceAll(" ", "")) {
-                        _showErrorSnackBar("Please change either the source or destination as they can't be the same");
+                      if(_handleRides()) {
+                        if (_toController.text.toLowerCase().replaceAll(" ", "") ==_fromController.text.toLowerCase().replaceAll(" ", "")||
+                    (_toController.text.toLowerCase().replaceAll(" ", "")==toOptions[0] && _fromController.text.toLowerCase().replaceAll(" ", "")==toOptions[1])||
+                           (_toController.text.toLowerCase().replaceAll(" ", "")==toOptions[1] && _fromController.text.toLowerCase().replaceAll(" ", "")==toOptions[0]))
+                             {
+                               _showErrorSnackBar(
+                              "Please change either the source or destination as they can't be the same");
+                        }
+                        else if (!toOptions.contains(_toController.text
+                            .toLowerCase().replaceAll(" ", "")) &&
+                            !toOptions.contains(_fromController.text
+                                .toLowerCase().replaceAll(" ", ""))) {
+                          // print("ana hna");
+                          _showErrorSnackBar(
+                              "Either source or destination must be one of: ${toOptions
+                                  .join(', ')}");
+                        }
+                        else {
+                          String rideId = generateID();
+                          _store.addRide(
+                              _toController.text, _fromController.text,
+                              selectedTime, Date, _feesController.text, rideId);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("Ride added successfully!"),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                          Navigator.pushReplacementNamed(context, '/rides');
+                        }
                       }
-                      else if (_toController.text.toLowerCase().replaceAll(" ", "") == toOptions[0] ||
-                      _fromController.text.toLowerCase().replaceAll(" ", "") == toOptions[1] ||
-                        _toController.text.toLowerCase().replaceAll(" ", "") == toOptions[1] ||
-                        _fromController.text.toLowerCase().replaceAll(" ", "") == toOptions[1]) {
-                         // print("ana hna");
-                         _showErrorSnackBar(
-                             "Either source or destination must be either gate 3 or gate 4");
-                       }
-                      else{
-                        String rideId=generateID();
-                         _store.addRide(
-                             _toController.text, _fromController.text,
-                             selectedTime, Date, _feesController.text,rideId);
-                         ScaffoldMessenger.of(context).showSnackBar(
-                           SnackBar(
-                             content: Text("Ride added successfully!"),
-                             duration: Duration(seconds: 2),
-                           ),
-                         );
-                         Navigator.pushReplacementNamed(context, '/rides');
-                       }
+
                     },
                     child: Text('Add Ride'),
                   ),

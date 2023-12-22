@@ -15,7 +15,6 @@ class Profile extends StatefulWidget {
 
 class _ProfileState extends State<Profile> {
 
-  int _selectedIndex = 0; // Added default value for selectedIndex
   FirebaseAuth auth = FirebaseAuth.instance;
   User? currentUser=FirebaseAuth.instance.currentUser;
 
@@ -28,34 +27,48 @@ class _ProfileState extends State<Profile> {
     await auth.signOut();
   }
 
-
+  User? currentuser=FirebaseAuth.instance.currentUser;
 
   String ?email;
   FirebaseFirestore firestore=FirebaseFirestore .instance;
 
   void readData() async{
-    String UID=currentUser!.uid;
-    String query="SELECT * FROM USERS WHERE UID = '$UID'";
-    var response=await myDB.reading(query);
-    userRow=response[0];
-    fname=userRow?['FNAME'].toString();
-    lname=userRow?['LNAME'].toString();
-    var connectivityResult = await (Connectivity().checkConnectivity());
-    if (connectivityResult != ConnectivityResult.none){
-      firestore.collection('users').doc(currentUser!.uid).update({
-        'firstName':fname,
-        'lastName':lname,
-        'phone':userRow?['Mobile'].toString(),
-      });
+    try{
+      String UID=currentuser!.uid;
+      if (UID != null) {
+        String query="SELECT * FROM USERS WHERE UID = '$UID'";
+        var response=await myDB.reading(query);
+        print("Database response: $response");
+        if(response.isNotEmpty) {
+          userRow = response[0];
+          fname = userRow?['FNAME'].toString();
+          lname = userRow?['LNAME'].toString();
+          var connectivityResult = await (Connectivity().checkConnectivity());
+          if (connectivityResult != ConnectivityResult.none) {
+            firestore.collection('users').doc(currentuser!.uid).update({
+              'firstName': fname,
+              'lastName': lname,
+              'phone': userRow?['Mobile'].toString(),
+            });
+            // }
+            setState(() {
+              fname = userRow?['FNAME'].toString();
+              lname = userRow?['LNAME'].toString();
+              mobile = userRow?['Mobile'].toString();
+            });
+          }
+        }
+        else{
+          print('User data not found');
+        }
+      } else {
+        print('Current user is null');
+      }
+    } catch (e) {
+      print('Error reading data: $e');
+      // Handle the error as needed
     }
-    setState(() {
-      fname=userRow?['FNAME'].toString();
-      lname=userRow?['LNAME'].toString();
-      mobile =userRow?['Mobile'].toString();
-    });
-
   }
-
   // User is signed in
 
 

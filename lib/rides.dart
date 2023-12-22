@@ -332,7 +332,7 @@ class _RideOfferScreen extends State <RideOfferScreen> {
                             }
                             else {
                               await FirebaseFirestore.instance.collection(
-                                  'requests').doc(request['Id']).update(
+                                  'requests').doc(Uid).update(
                                   {
                                     'Requests': FieldValue.arrayRemove(
                                         [request])
