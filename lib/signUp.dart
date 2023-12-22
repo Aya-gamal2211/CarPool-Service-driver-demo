@@ -59,26 +59,18 @@ class _SignUpState extends State<SignUp> {
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
-  int _handleSignUp() {
+  bool _handleSignUp() {
     // Implement your signup logic here
     String email = _emailController.text;
     String password = _passwordController.text;
     String confirmPassword = _confirmPasswordController.text;
-    String mobile= _confirmMobileController.text;
-    String fname= _fNameController.text;
-    String lname= _lNameController.text;
-    // Validate input
-    if (email.isEmpty || password.isEmpty || confirmPassword.isEmpty || fname.isEmpty || lname.isEmpty || email==null || password==null || confirmPassword==null || fname ==null || lname==null) {
-      // Show an error message or toast
-      _showErrorSnackBar("Please fill in the empty fields and cant be null");
 
-      return 0;
-    }
+    // Validate input
 
     if (password != confirmPassword) {
       // Show password mismatch error
       _showErrorSnackBar("Password mismatch");
-      return 0;
+      return false;
     }
 
 
@@ -88,7 +80,7 @@ class _SignUpState extends State<SignUp> {
     // For now, print the input
 
     print('Email: $email, Password: $password');
-    return 1;
+    return true;
   }
   String? _validateName(String? value) {
     if (value == null || value.isEmpty || !RegExp(r'^[a-zA-Z]+$').hasMatch(value)) {
@@ -123,8 +115,8 @@ class _SignUpState extends State<SignUp> {
     }
 
     // Check if the value has a specific length (adjust as needed)
-    if (value.length != 10) {
-      return 'Mobile number should be 10 digits';
+    if (value.length != 11) {
+      return 'Mobile number should be 11 digits';
     }
 
     // Return null if the validation passes
@@ -197,25 +189,34 @@ class _SignUpState extends State<SignUp> {
                   SizedBox(height: 24.0),
                   ElevatedButton(
                     onPressed: ()async{
+                    if (_formKey.currentState!.validate()) {
+                        if(_handleSignUp()) {
 
-                      _handleSignUp();
-                   await _register();
-                      _auth.signInWithEmailAndPassword(
-                      email: _emailController.text.trim(),
-                      password: _passwordController.text.trim(),
-
-                      );
+                          await _register();
+                       _auth.signInWithEmailAndPassword(
+                           email: _emailController.text.trim(),
+                             password: _passwordController.text.trim(),
+                       );
 
                       final UID= FirebaseAuth.instance.currentUser?.uid;
-                      DocumentReference docRef = firestore.collection('requests').doc(UID);
-                      docRef.get().then((docSnapshot) {
-                        // Check if the document exists
-                        if (!docSnapshot.exists) {
-                          // If the document does not exist, create it with an empty list
-                          docRef.set({'Requests': []});
+                    DocumentReference docRef = firestore.collection('requests').doc(UID);
+                       docRef.get().then((docSnapshot) {
+    // Check if the document exists
+                           if (!docSnapshot.exists) {
+    // If the document does not exist, create it with an empty list
+                             docRef.set({'Requests': []});
+                                  }
+                                });;
+                             Navigator.pushReplacementNamed(context, '/SignIn');
+                             }
+                        else{
+                          //do nothing
                         }
-                      });;
-                      Navigator.pushReplacementNamed(context, '/SignIn');
+                    }
+                    else{
+                      _showErrorSnackBar("There is an error while filling the fields 🤷‍");
+
+                    }
     },
 
 
