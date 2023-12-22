@@ -87,49 +87,6 @@ class fireStore{
     }
   }
 
-  // Stream<List<Map<String, dynamic>>> fetchrequests() {
-  //   // final uid = FirebaseAuth.instance.currentUser?.uid;
-  //   // if (uid != null) {
-  //   //   return FirebaseFirestore.instance
-  //   //       .collection('requests')
-  //   //       .snapshots()
-  //   //       .map((snapshot) => snapshot.docs);
-  //   // } else {
-  //   //   return Stream.value(
-  //   //       []); // Return an empty stream if the user is not logged in
-  //
-  //     User? currentUser = FirebaseAuth.instance.currentUser;
-  //     if (currentUser == null) {
-  //       return Stream.value([]); // Return an empty stream if the user is not logged in
-  //     }
-  //
-  //     // Listen for real-time updates in the 'requests' document for the current user
-  //     return FirebaseFirestore.instance
-  //         .collection('requests')
-  //         .doc(currentUser.uid)
-  //         .snapshots()
-  //         .map((requestSnapshot) {
-  //       if (!requestSnapshot.exists || !requestSnapshot.data()!.containsKey('Requests')) {
-  //         return []; // Return an empty list if the document or key 'Requests' does not exist
-  //       }
-  //
-  //       List<dynamic> requestsArray = requestSnapshot.get('Requests');
-  //       // Transform the dynamic list to a list of maps
-  //       return requestsArray.map<Map<String, dynamic>>((requestItem) {
-  //         return {
-  //           'from': requestItem['from'],
-  //           'to': requestItem['to'],
-  //           'date': requestItem['date'],
-  //           'time': requestItem['time'],
-  //           'fees': requestItem['fees'] ,
-  //           // 'status': requestItem['status'],
-  //           // 'id':requestItem['id'],
-  //
-  //         };
-  //       }).toList();
-  //     });
-  //   }
-  // }
   Stream<List<Map<String, dynamic>>> fetchrequests() {
     User? currentUser = FirebaseAuth.instance.currentUser;
 
